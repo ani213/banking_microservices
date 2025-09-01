@@ -1,16 +1,16 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func Start() {
-	http.HandleFunc("/greet", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "Hello, World!")
-	})
-	http.HandleFunc("/customers", CustomersHandler)
-	http.HandleFunc("/xml", XMLHandler)
-	http.ListenAndServe(":8080", nil)
+	// mux := http.NewServeMux()
+	mux := mux.NewRouter()
+	mux.HandleFunc("/customers", CustomersHandler)
+	mux.HandleFunc("/xml", XMLHandler)
+	http.ListenAndServe(":8080", mux)
 
 }
