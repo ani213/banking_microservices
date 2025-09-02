@@ -3,7 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"net/http"
+
+	"github.com/ani213/banking-microservices/service"
+	"github.com/gorilla/mux"
 )
 
 type Customer struct {
@@ -11,15 +15,19 @@ type Customer struct {
 	Age  int    `json:"age" xml:"age"`   // json tag for serialization
 }
 
-func CustomersHandler(w http.ResponseWriter, r *http.Request) {
-	customer := []Customer{
-		{Name: "Alice", Age: 30},
-		{Name: "Bob", Age: 25},
-		{Name: "Charlie", Age: 35},
-	}
-	w.Header().Set("Content-Type", "application/json")
+type CustomersHandler struct {
+	service service.CustomerService
+}
 
-	json.NewEncoder(w).Encode(customer)
+func (ch *CustomersHandler) GetAllCustomers(w http.ResponseWriter, r *http.Request) {
+	customers, err := ch.service.GetAllCustomers()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Some error occurred"))
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(customers)
 }
 
 func XMLHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,4 +46,10 @@ func XMLHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+
+func CustomersByIDHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	fmt.Fprint(w, "Customer by id:", id)
 }
