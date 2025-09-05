@@ -16,18 +16,21 @@ func NewService(repo *Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (s *Service) Register(email, password string) error {
-	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+func (s *Service) Register(userReq *RegisterRequest) error {
+	hash, _ := bcrypt.GenerateFromPassword([]byte(userReq.Password), bcrypt.DefaultCost)
 	user := &User{
 		ID:           uuid.New().String(),
-		Email:        email,
+		Email:        userReq.Email,
 		PasswordHash: string(hash),
+		FullName:     userReq.FullName,
 	}
 	return s.repo.CreateUser(user)
 }
 
 func (s *Service) Login(email, password string) (string, error) {
+
 	user, err := s.repo.FindByEmail(email)
+
 	if err != nil || user == nil {
 		return "", errors.New("invalid credentials")
 	}
