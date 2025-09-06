@@ -10,7 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ani213/banking-auth/internal/auth"
+	"github.com/ani213/auth-service/internal/account"
+	"github.com/ani213/auth-service/internal/middleware"
+	"github.com/ani213/auth-service/internal/routes"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/gorilla/mux"
@@ -29,9 +31,9 @@ func main() {
 		log.Fatal("DB connection error:", err)
 	}
 
-	// Get absolute path to migrations/
+	// // Get absolute path to migrations/
 	// wd, _ := os.Getwd()
-	// migrationsPath := "file://" + filepath.Join(wd, "../../migrations")
+	// migrationsPath := "file://" + filepath.Join(wd, "../migrations")
 	// // migrationsPath := "file://./migrations"
 
 	// log.Println("Migrations path:", migrationsPath)
@@ -57,19 +59,20 @@ func main() {
 	// }
 	// log.Printf("Current DB version: %d (dirty: %v)\n", version, dirty)
 
-	repo := auth.NewRepository(db)
-	svc := auth.NewService(repo)
-	h := auth.NewHandler(svc)
+	repo := account.NewRepository(db)
+	svc := account.NewService(repo)
+	h := account.NewHandler(svc)
 
 	r := mux.NewRouter()
-	auth.Routes(r, h)
+	r.Use(middleware.JWTMiddleware)
+	routes.Routes(r, h)
 	server := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":8081",
 		Handler: r,
 	}
 	//
 
-	log.Println("Auth service running on :8080")
+	log.Println("Auth service running on :8081")
 	// http.ListenAndServe(":8080", r)
 
 	// Create a channel to listen for OS termination signals
