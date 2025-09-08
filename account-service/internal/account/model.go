@@ -7,12 +7,20 @@ import (
 )
 
 type Account struct {
-	ID            int64           `db:"id" json:"id"`                         // primary key
-	UserID        int64           `db:"user_id" json:"userId"`                // FK -> users.id
-	AccountNumber string          `db:"account_number" json:"accountNumber"`  // unique account number
-	Balance       decimal.Decimal `db:"balance" json:"balance"`               // money (NUMERIC in DB)
-	AccountTypeID int             `db:"account_type_id" json:"accountTypeId"` // FK -> account_types.id
-	StatusID      int             `db:"status_id" json:"statusId"`            // FK -> account_status.id
+	ID            int64           `db:"id" json:"id"`                                             // primary key
+	UserID        int64           `db:"user_id" json:"userId" validate:"required"`                // FK -> users.id
+	AccountNumber string          `db:"account_number" json:"accountNumber" validate:"required"`  // unique account number
+	Balance       decimal.Decimal `db:"balance" json:"balance"`                                   // money (NUMERIC in DB)
+	AccountTypeID int             `db:"account_type_id" json:"accountTypeId" validate:"required"` // FK -> account_types.id
+	StatusID      int             `db:"status_id" json:"statusId" validate:"required"`            // FK -> account_status.id
 	CreatedAt     time.Time       `db:"created_at" json:"createdAt"`
 	UpdatedAt     time.Time       `db:"updated_at" json:"updatedAt"`
+}
+
+type AccountRequest struct {
+	UserId        int64  `json:"userId" validate:"required"`
+	AccountNumber string `json:"accountNumber" validate:"required"`
+	AccountTypeId int    `json:"accountTypeId" validate:"required"`
+	Balance       int64  `json:"balance" validate:"required,min=0"`
+	StatusID      int
 }

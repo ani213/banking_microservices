@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/ani213/auth-service/utils"
+	"github.com/go-playground/validator"
 	"github.com/gorilla/mux"
 	"github.com/shopspring/decimal"
 )
@@ -17,14 +19,22 @@ func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
 }
 
+var validate = validator.New()
+
 func (h *Handler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	var acc Account
 	if err := json.NewDecoder(r.Body).Decode(&acc); err != nil {
 		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
 	}
+	if err := validate.Struct(acc); err != nil {
+		utils.ValidationError(w, err, http.StatusBadRequest)
+		// utils.CustomError(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	if err := h.service.CreateAccount(r.Context(), &acc); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		// http.Error(w, err.Error(), http.StatusInternalServerError)
+		utils.CustomError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	json.NewEncoder(w).Encode(acc)

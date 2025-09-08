@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/ani213/auth-service/internal/account"
+	"github.com/ani213/auth-service/internal/config"
 	"github.com/ani213/auth-service/internal/middleware"
 	"github.com/ani213/auth-service/internal/routes"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -20,12 +21,14 @@ import (
 )
 
 func main() {
-	dsn := "postgres://bank:password@localhost:5432/bank?sslmode=disable"
-	if os.Getenv("DATABASE_URL") != "" {
-		dsn = os.Getenv("DATABASE_URL")
-	}
 
-	db, err := sqlx.Connect("postgres", dsn)
+	config := config.LoadConfig()
+	// dsn := "postgres://bank:password@localhost:5432/bank?sslmode=disable"
+	// if os.Getenv("DATABASE_URL") != "" {
+	// 	dsn = os.Getenv("DATABASE_URL")
+	// }
+
+	db, err := sqlx.Connect("postgres", config.DBSource)
 
 	if err != nil {
 		log.Fatal("DB connection error:", err)
@@ -64,7 +67,7 @@ func main() {
 	h := account.NewHandler(svc)
 
 	r := mux.NewRouter()
-	r.Use(middleware.JWTMiddleware)
+	r.Use(middleware.JWTMiddleware(config))
 	routes.Routes(r, h)
 	server := &http.Server{
 		Addr:    ":8081",
