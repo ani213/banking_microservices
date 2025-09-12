@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	dsn := "postgres://bank:password@localhost:5432/bank?sslmode=disable"
+	dsn := "postgres://postgres:password@localhost:5432/bank?sslmode=disable"
 	if os.Getenv("DATABASE_URL") != "" {
 		dsn = os.Getenv("DATABASE_URL")
 	}
@@ -30,9 +30,13 @@ func main() {
 	}
 
 	// Get absolute path to migrations/
-	// wd, _ := os.Getwd()
+	// wd, err := os.Getwd()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	// migrationsPath := "file://" + filepath.Join(wd, "../../migrations")
-	// // migrationsPath := "file://./migrations"
+	// migrationsPath := "file://./migrations"
+	// migrationsPath := filepath.Join(wd, "migrations")
 
 	// log.Println("Migrations path:", migrationsPath)
 	// m, err := migrate.New(migrationsPath, dsn)
