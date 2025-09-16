@@ -13,6 +13,7 @@ import (
 
 	"github.com/ani213/email-service/internal/config"
 	"github.com/ani213/email-service/internal/email"
+	"github.com/ani213/email-service/internal/middleware"
 	"github.com/ani213/email-service/internal/routes"
 	"github.com/gorilla/mux"
 )
@@ -25,6 +26,7 @@ func main() {
 
 	r := mux.NewRouter()
 	api := r.PathPrefix("/api").Subrouter()
+	api.Use(middleware.Authenticate(config))
 	routes.Routes(api, h)
 
 	server := &http.Server{
