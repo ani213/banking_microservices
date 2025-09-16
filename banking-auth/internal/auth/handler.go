@@ -50,6 +50,18 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
+
+	users, err := h.svc.GetUsers()
+	if err != nil {
+		util.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	json.NewEncoder(w).Encode(map[string][]ResponsGetUser{
+		"users": users,
+	})
+}
+
 func (h *Handler) ValidateToken(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Token string `json:"token"`

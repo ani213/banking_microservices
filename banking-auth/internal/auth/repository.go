@@ -31,3 +31,14 @@ func (r *Repository) FindByEmail(email string) (*User, error) {
 	}
 	return &u, err
 }
+
+func (r *Repository) FindUsers() ([]ResponsGetUser, error) {
+	var u []ResponsGetUser
+	err := r.db.Select(&u, "SELECT id, email, full_name FROM users")
+	if err != nil {
+		fmt.Println("Error fetching users:", err)
+
+		return nil, err
+	}
+	return u, err
+}

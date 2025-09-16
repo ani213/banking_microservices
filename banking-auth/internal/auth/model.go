@@ -18,3 +18,9 @@ type RegisterRequest struct {
 	FullName string `json:"fullName" validate:"omitempty,min=3"`
 	Password string `json:"password" validate:"required,min=6"`
 }
+
+type ResponsGetUser struct {
+	ID       string `db:"id"`
+	Email    string `db:"email"`
+	FullName string `db:"full_name"`
+}

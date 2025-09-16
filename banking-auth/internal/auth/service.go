@@ -40,6 +40,16 @@ func (s *Service) Login(email, password string) (string, error) {
 	return jwtutil.GenerateToken(user.ID)
 }
 
+func (s *Service) GetUsers() ([]ResponsGetUser, error) {
+
+	users, err := s.repo.FindUsers()
+
+	if err != nil || users == nil {
+		return nil, errors.New("invalid credentials")
+	}
+	return users, nil
+}
+
 func (s *Service) ValidateToken(token string) (string, error) {
 	userID, err := jwtutil.ValidateToken(token)
 	if err != nil {
