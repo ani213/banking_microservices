@@ -39,3 +39,11 @@ func (s *Service) Login(email, password string) (string, error) {
 	}
 	return jwtutil.GenerateToken(user.ID)
 }
+
+func (s *Service) ValidateToken(token string) (string, error) {
+	userID, err := jwtutil.ValidateToken(token)
+	if err != nil {
+		return "", err
+	}
+	return userID, nil
+}
