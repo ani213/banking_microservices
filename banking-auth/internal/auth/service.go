@@ -50,10 +50,10 @@ func (s *Service) GetUsers() ([]ResponsGetUser, error) {
 	return users, nil
 }
 
-func (s *Service) ValidateToken(token string) (string, error) {
+func (s *Service) ValidateToken(token string) (int64, error) {
 	userID, err := jwtutil.ValidateToken(token)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 	return userID, nil
 }

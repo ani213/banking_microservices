@@ -67,12 +67,11 @@ func (h *Handler) ValidateToken(w http.ResponseWriter, r *http.Request) {
 		Token string `json:"token"`
 	}
 	json.NewDecoder(r.Body).Decode(&req)
-	// log.Println(req.Token)
 	userId, err := jwtutil.ValidateToken(req.Token)
-	// log.Println(err.Error())
 	if err != nil {
 		util.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{"userid": userId, "valid": true})
 }

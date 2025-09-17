@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/ani213/banking-auth/internal/auth"
+	"github.com/ani213/banking-auth/pkg/jwtutil"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/gorilla/mux"
@@ -64,9 +65,11 @@ func main() {
 	repo := auth.NewRepository(db)
 	svc := auth.NewService(repo)
 	h := auth.NewHandler(svc)
-
 	r := mux.NewRouter()
-	auth.Routes(r, h)
+	api := r.PathPrefix("/auth").Subrouter()
+	api.Use(jwtutil.JWTMiddleware())
+	auth.PublicRoutes(r, h)
+	auth.PrivateRoutes(api, h)
 	server := &http.Server{
 		Addr:    ":8080",
 		Handler: r,

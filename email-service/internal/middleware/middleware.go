@@ -13,7 +13,7 @@ import (
 
 type validateResponse struct {
 	Valid  bool   `json:"valid"`
-	UserID string `json:"userId,omitempty"`
+	UserID int64  `json:"userId,omitempty"`
 	Error  string `json:"error,omitempty"`
 }
 
@@ -43,7 +43,6 @@ func Authenticate(config *config.Config) func(http.Handler) http.Handler {
 			defer resp.Body.Close()
 
 			if resp.StatusCode != http.StatusOK {
-				log.Println("not ok status", resp.StatusCode)
 				utils.UnAutherizedError(w)
 				return
 			}
