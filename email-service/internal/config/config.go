@@ -8,7 +8,11 @@ import (
 )
 
 type Config struct {
-	AuthService string
+	AuthService   string
+	SMTPHost      string
+	SMTPPort      string
+	EmailPassword string
+	EmailId       string
 }
 
 func LoadConfig() *Config {
@@ -17,6 +21,10 @@ func LoadConfig() *Config {
 		log.Println("No .env file found, using system env")
 	}
 	return &Config{
-		AuthService: os.Getenv("AUTH_SERVICE"),
+		AuthService:   os.Getenv("AUTH_SERVICE"),
+		SMTPHost:      os.Getenv("SMTPHOST"),
+		SMTPPort:      os.Getenv("SMTPPORT"),
+		EmailPassword: os.Getenv("PASSWORD"),
+		EmailId:       os.Getenv("EMAIL"),
 	}
 }

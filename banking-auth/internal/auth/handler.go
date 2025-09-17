@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ani213/banking-auth/pkg/jwtutil"
 	"github.com/ani213/banking-auth/util"
 	"github.com/go-playground/validator"
 )
@@ -67,7 +66,7 @@ func (h *Handler) ValidateToken(w http.ResponseWriter, r *http.Request) {
 		Token string `json:"token"`
 	}
 	json.NewDecoder(r.Body).Decode(&req)
-	userId, err := jwtutil.ValidateToken(req.Token)
+	userId, err := h.svc.ValidateToken(req.Token)
 	if err != nil {
 		util.Error(w, err.Error(), http.StatusUnauthorized)
 		return

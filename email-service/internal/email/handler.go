@@ -2,6 +2,7 @@ package email
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -14,5 +15,10 @@ func NewHandler(service *Service) *Handler {
 }
 
 func (h *Handler) SendEmail(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(map[string]string{"message": "Working fine"})
+	var reqBody EmailRequest
+	json.NewDecoder(r.Body).Decode(&reqBody)
+	msg, _ := h.service.SendEmail(&reqBody)
+	fmt.Println(msg)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"msg": msg})
 }
