@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -16,9 +15,7 @@ import (
 
 // var jwtSecret = []byte("super-secret-key") // should come from ENV
 
-type ContextKey string
-
-const UserIDKey ContextKey = "user"
+// type contextKey string
 
 // JWTMiddleware validates JWT from Auth Service
 // func JWTMiddleware(next http.Handler) http.Handler {
@@ -104,9 +101,8 @@ func JWTMiddleware(cnf *config.Config) func(http.Handler) http.Handler {
 				AuthError(w)
 				return
 			}
-			log.Println(user, "seted value user")
 			// attach userID to request context
-			ctx := context.WithValue(r.Context(), UserIDKey, user)
+			ctx := context.WithValue(r.Context(), account.UserContextKey, user)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

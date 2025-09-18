@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/ani213/account-service/internal/config"
-	"github.com/ani213/account-service/internal/utils"
+	"github.com/ani213/account-service/internal/util"
 	"github.com/shopspring/decimal"
 )
 
@@ -38,7 +38,7 @@ func (s *Service) Withdraw(ctx context.Context, id int64, amount decimal.Decimal
 }
 
 func (s *Service) SendEmail(to string, subject string, body string, r *http.Request) {
-	token := utils.GetToken(r)
+	token := util.GetToken(r)
 
 	req := EmailRequestBody{
 		To:      to,
@@ -54,17 +54,17 @@ func (s *Service) SendEmail(to string, subject string, body string, r *http.Requ
 	if err != nil {
 		log.Println(err.Error())
 	}
-	log.Println(token, ">>>>>>token")
 	emailReq.Header.Set("Content-Type", "application/json")
 	emailReq.Header.Set("Authorization", "Bearer "+token)
-	log.Println(emailReq.Header.Get("Authorization"))
 	client := &http.Client{}
 	resp, err := client.Do(emailReq)
+
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err.Error(), "Error main things")
 		return
 	}
 	log.Println(resp.StatusCode, "response")
+
 	defer resp.Body.Close()
 	log.Println("Email sent to:-  " + to)
 }

@@ -2,11 +2,10 @@ package account
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
-	"github.com/ani213/account-service/internal/utils"
+	"github.com/ani213/account-service/internal/util"
 	"github.com/go-playground/validator"
 	"github.com/gorilla/mux"
 	"github.com/shopspring/decimal"
@@ -20,6 +19,12 @@ func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
 }
 
+func GetContexValue(r *http.Request) ContextValue {
+	val := r.Context().Value(UserContextKey)
+	user, _ := val.(ContextValue)
+	return user
+}
+
 var validate = validator.New()
 
 func (h *Handler) CreateAccount(w http.ResponseWriter, r *http.Request) {
@@ -29,18 +34,17 @@ func (h *Handler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := validate.Struct(acc); err != nil {
-		utils.ValidationError(w, err, http.StatusBadRequest)
+		util.ValidationError(w, err, http.StatusBadRequest)
 		// utils.CustomError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	if err := h.service.CreateAccount(r.Context(), &acc); err != nil {
 		// http.Error(w, err.Error(), http.StatusInternalServerError)
-		utils.CustomError(w, err.Error(), http.StatusInternalServerError)
+		util.CustomError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	contextValue := utils.GetContextValue(r)
-	log.Println(contextValue, "context value")
-	// h.service.SendEmail()
+	contextUser := GetContexValue(r)
+	go h.service.SendEmail(contextUser.Email, "Account Creation", "Your Account number:-"+acc.AccountNumber+" is successfully created", r)
 	json.NewEncoder(w).Encode(acc)
 }
 

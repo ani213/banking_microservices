@@ -37,6 +37,6 @@ type ContextValue struct {
 	FullName string
 }
 
-type contextKey string
+type ContextKey string
 
-const UserIDKey contextKey = "user"
+var UserContextKey ContextKey = "user"

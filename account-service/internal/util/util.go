@@ -1,13 +1,11 @@
-package utils
+package util
 
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
-	"github.com/ani213/account-service/internal/middleware"
 	"github.com/go-playground/validator"
 )
 
@@ -40,17 +38,10 @@ func ValidationError(w http.ResponseWriter, err error, code int) {
 
 func GetToken(r *http.Request) string {
 	authHeader := r.Header.Get("Authorization")
-	log.Println(authHeader, "Auth header>>>")
 	parts := strings.Split(authHeader, " ")
 	if len(parts) == 2 {
 		return parts[1]
 	} else {
 		return ""
 	}
-}
-
-func GetContextValue(r *http.Request) string {
-	user := r.Context().Value(middleware.UserIDKey)
-	log.Println(user, "user")
-	return "ani"
 }
