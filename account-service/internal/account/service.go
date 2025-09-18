@@ -77,12 +77,20 @@ func (s *Service) GetAccountsByUserID(userId string) ([]ResponseAccount, error) 
 	return accounts, nil
 }
 
-func (s *Service) GetAllUserWithAccounts() ([]UserAccount, error) {
+func (s *Service) GetAllUserWithAccounts() ([]ResponseAllUserWithAccount, error) {
 
 	user, err := s.repo.GetAllUserWithAccounts()
 	if err != nil {
-		return []UserAccount{}, err
+		return []ResponseAllUserWithAccount{}, err
 	}
-	return user, nil
+	group := make(map[int64][]UserAccount)
+	for _, item := range user {
+		group[item.UserID] = append(group[item.UserID], UserAccount{AccountNumber: item.AccountNumber, Balance: item.Balance, AccountType: item.AccountType, UserID: item.UserID, Status: item.Status, Email: item.Email})
+	}
+	var result []ResponseAllUserWithAccount
+	for key, value := range group {
+		result = append(result, ResponseAllUserWithAccount{UserId: key, Email: value[0].Email, Accounts: value})
+	}
+	return result, nil
 
 }

@@ -56,17 +56,18 @@ type ResponseAccount struct {
 }
 
 type ResponseAllUserWithAccount struct {
-	UserId   string        `json:"userId"`
+	UserId   int64         `json:"userId"`
 	Accounts []UserAccount `json:"accounts"`
+	Email    string        `json:"email"`
 }
 
 type UserAccount struct {
-	UserID        int64           `db:"user_id" json:"userId" `               // FK -> users.id
-	AccountNumber string          `db:"account_number" json:"accountNumber" ` // unique account number
-	Balance       decimal.Decimal `db:"balance" json:"balance"`               // money (NUMERIC in DB)
+	UserID        int64    `db:"user_id" json:"userId" `               // FK -> users.id
+	AccountNumber *string  `db:"account_number" json:"accountNumber" ` // unique account number
+	Balance       *float64 `db:"balance" json:"balance"`               // money (NUMERIC in DB)
 	// CreatedAt     time.Time       `db:"created_at" json:"createdAt"`
 	// UpdatedAt     time.Time       `db:"updated_at" json:"updatedAt"`
-	Email       string `db:"email" json:"email"`
-	AccountType string `db:"account_type" json:"account_type"`
-	Status      string `db:"status" json:"status"`
+	Email       string  `db:"email" json:"email"`
+	AccountType *string `db:"account_type" json:"account_type"`
+	Status      *string `db:"status" json:"status"`
 }

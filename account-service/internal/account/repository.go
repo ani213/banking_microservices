@@ -103,20 +103,8 @@ func (r *Repository) GetAllUserWithAccounts() ([]UserAccount, error) {
 	    FROM users u
 	    LEFT JOIN accounts a ON u.id = a.user_id
 	    LEFT JOIN account_types at ON a.account_type_id = at.id
-	    LEFT JOIN account_status ON a.status_id = account_status.id;`
+	    LEFT JOIN account_status ON a.status_id = account_status.id order by u.id;`
 
-	// query := `SELECT
-	// 		users.id AS user_id,
-	//         users.full_name AS full_name,
-	//         users.email AS email,
-	//         accounts.account_number AS account_number,
-	//         accounts.balance AS balance,
-	//         account_types.name AS account_type,
-	//         account_status.name AS status
-	//     FROM accounts
-	//     JOIN users ON users.id = accounts.user_id
-	//     JOIN account_types ON account_types.id = accounts.account_type_id
-	//     JOIN account_status ON account_status.id = accounts.status_id`
 	err := r.db.Select(&usersAccount, query)
 	if err != nil {
 		return []UserAccount{}, err
