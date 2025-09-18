@@ -4,19 +4,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/ani213/auth-service/internal/config"
+	"github.com/ani213/account-service/internal/account"
+	"github.com/ani213/account-service/internal/config"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 // var jwtSecret = []byte("super-secret-key") // should come from ENV
 
-type contextKey string
+type ContextKey string
 
-const UserIDKey contextKey = "userID"
+const UserIDKey ContextKey = "user"
 
 // JWTMiddleware validates JWT from Auth Service
 // func JWTMiddleware(next http.Handler) http.Handler {
@@ -94,34 +96,44 @@ func JWTMiddleware(cnf *config.Config) func(http.Handler) http.Handler {
 				return
 			}
 
-			claims := token.Claims.(jwt.MapClaims)
-			userID, err := getUserIDFromClaims(claims)
+			claims, ok := token.Claims.(jwt.MapClaims)
+
+			user, err := getUserIDFromClaims(claims, ok)
+
 			if err != nil {
 				AuthError(w)
 				return
 			}
-
+			log.Println(user, "seted value user")
 			// attach userID to request context
-			ctx := context.WithValue(r.Context(), UserIDKey, userID)
+			ctx := context.WithValue(r.Context(), UserIDKey, user)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
 
 // extract userID safely from claims
-func getUserIDFromClaims(claims jwt.MapClaims) (int64, error) {
+func getUserIDFromClaims(claims jwt.MapClaims, ok bool) (account.ContextValue, error) {
+	var contextValue account.ContextValue
+	if !ok {
+		return account.ContextValue{}, fmt.Errorf("not getting context value")
+	}
 	if val, ok := claims["user_id"].(float64); ok {
-		return int64(val), nil
+		contextValue.User_id = int64(val)
 	}
 	if val, ok := claims["user_id"].(string); ok {
 		// try to parse string to int64
 		parsed, err := strconv.ParseInt(val, 10, 64)
 		if err != nil {
-			return 0, fmt.Errorf("invalid user_id format")
+			return contextValue, fmt.Errorf("invalid user_id format")
 		}
-		return parsed, nil
+		contextValue.User_id = parsed
 	}
-	return 0, fmt.Errorf("user_id not found or invalid type")
+	// contextValue.User_id = (claims["user_id"].(int64))
+	contextValue.Email = (claims["email"]).(string)
+	contextValue.FullName = claims["fullName"].(string)
+
+	return contextValue, nil
 }
 
 func AuthError(w http.ResponseWriter) {

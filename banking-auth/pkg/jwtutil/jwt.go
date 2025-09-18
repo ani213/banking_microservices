@@ -18,10 +18,12 @@ type contextKey string
 
 const UserIDKey contextKey = "userID"
 
-func GenerateToken(userID string) (string, error) {
+func GenerateToken(userID string, email string, fullName string) (string, error) {
 	claims := jwt.MapClaims{
-		"user_id": userID,
-		"exp":     time.Now().Add(24 * time.Hour).Unix(),
+		"user_id":  userID,
+		"exp":      time.Now().Add(24 * time.Hour).Unix(),
+		"email":    email,
+		"fullName": fullName,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret)

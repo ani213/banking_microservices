@@ -10,10 +10,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ani213/auth-service/internal/account"
-	"github.com/ani213/auth-service/internal/config"
-	"github.com/ani213/auth-service/internal/middleware"
-	"github.com/ani213/auth-service/internal/routes"
+	"github.com/ani213/account-service/internal/account"
+	"github.com/ani213/account-service/internal/config"
+	"github.com/ani213/account-service/internal/middleware"
+	"github.com/ani213/account-service/internal/routes"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/gorilla/mux"
@@ -63,7 +63,7 @@ func main() {
 	// log.Printf("Current DB version: %d (dirty: %v)\n", version, dirty)
 
 	repo := account.NewRepository(db)
-	svc := account.NewService(repo)
+	svc := account.NewService(repo, config)
 	h := account.NewHandler(svc)
 
 	r := mux.NewRouter()

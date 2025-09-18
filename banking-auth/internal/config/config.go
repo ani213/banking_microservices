@@ -8,19 +8,15 @@ import (
 )
 
 type Config struct {
-	DBSource    string
-	JwtSecret   string
 	EmailServer string
 }
 
 func LoadConfig() *Config {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("No .env file found, using system env")
+		log.Println("Env file not loaded")
 	}
 	return &Config{
-		DBSource:    os.Getenv("DATABASE_URL"),
-		JwtSecret:   os.Getenv("SECRET_KEY"),
 		EmailServer: os.Getenv("EMAIL_SERVER"),
 	}
 

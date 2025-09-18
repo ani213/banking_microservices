@@ -24,3 +24,9 @@ type ResponsGetUser struct {
 	Email    string `db:"email"`
 	FullName string `db:"full_name"`
 }
+
+type EmailRequestBody struct {
+	To      string `json:"to"`
+	Body    string `json:"body"`
+	Subject string `json:"subject"`
+}

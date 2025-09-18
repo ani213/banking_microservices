@@ -1,17 +1,24 @@
 package account
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"log"
+	"net/http"
 
+	"github.com/ani213/account-service/internal/config"
+	"github.com/ani213/account-service/internal/utils"
 	"github.com/shopspring/decimal"
 )
 
 type Service struct {
-	repo *Repository
+	repo   *Repository
+	config *config.Config
 }
 
-func NewService(repo *Repository) *Service {
-	return &Service{repo: repo}
+func NewService(repo *Repository, config *config.Config) *Service {
+	return &Service{repo: repo, config: config}
 }
 
 func (s *Service) CreateAccount(ctx context.Context, acc *Account) error {
@@ -28,4 +35,36 @@ func (s *Service) Deposit(ctx context.Context, id int64, amount decimal.Decimal)
 
 func (s *Service) Withdraw(ctx context.Context, id int64, amount decimal.Decimal) error {
 	return s.repo.Withdraw(ctx, id, amount)
+}
+
+func (s *Service) SendEmail(to string, subject string, body string, r *http.Request) {
+	token := utils.GetToken(r)
+
+	req := EmailRequestBody{
+		To:      to,
+		Body:    body,
+		Subject: subject,
+	}
+	reqBody, err := json.Marshal(req)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	emailReq, err := http.NewRequest("POST", s.config.EmailServer+"/send-email", bytes.NewBuffer(reqBody))
+	if err != nil {
+		log.Println(err.Error())
+	}
+	log.Println(token, ">>>>>>token")
+	emailReq.Header.Set("Content-Type", "application/json")
+	emailReq.Header.Set("Authorization", "Bearer "+token)
+	log.Println(emailReq.Header.Get("Authorization"))
+	client := &http.Client{}
+	resp, err := client.Do(emailReq)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	log.Println(resp.StatusCode, "response")
+	defer resp.Body.Close()
+	log.Println("Email sent to:-  " + to)
 }

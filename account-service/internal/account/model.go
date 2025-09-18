@@ -24,3 +24,19 @@ type AccountRequest struct {
 	Balance       int64  `json:"balance" validate:"required,min=0"`
 	StatusID      int
 }
+
+type EmailRequestBody struct {
+	To      string `json:"to"`
+	Body    string `json:"body"`
+	Subject string `json:"subject"`
+}
+
+type ContextValue struct {
+	Email    string
+	User_id  int64
+	FullName string
+}
+
+type contextKey string
+
+const UserIDKey contextKey = "user"

@@ -3,7 +3,9 @@ package util
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"strings"
 
 	"github.com/go-playground/validator"
 )
@@ -42,4 +44,15 @@ func ValidationError(w http.ResponseWriter, err error, code int) {
 	}
 	w.WriteHeader(http.StatusBadRequest)
 	json.NewEncoder(w).Encode(map[string]interface{}{"errors": messages})
+}
+
+func GetToken(r *http.Request) string {
+	authHeader := r.Header.Get("Authorization")
+	log.Println(authHeader, "Auth header>>>")
+	parts := strings.Split(authHeader, " ")
+	if len(parts) == 2 {
+		return parts[1]
+	} else {
+		return ""
+	}
 }

@@ -2,10 +2,11 @@ package account
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
-	"github.com/ani213/auth-service/utils"
+	"github.com/ani213/account-service/internal/utils"
 	"github.com/go-playground/validator"
 	"github.com/gorilla/mux"
 	"github.com/shopspring/decimal"
@@ -37,6 +38,9 @@ func (h *Handler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		utils.CustomError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	contextValue := utils.GetContextValue(r)
+	log.Println(contextValue, "context value")
+	// h.service.SendEmail()
 	json.NewEncoder(w).Encode(acc)
 }
 

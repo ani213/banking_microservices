@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/ani213/auth-service/internal/account"
+	"github.com/ani213/account-service/internal/account"
 	"github.com/gorilla/mux"
 )
 

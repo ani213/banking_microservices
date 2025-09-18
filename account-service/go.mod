@@ -1,4 +1,4 @@
-module github.com/ani213/auth-service
+module github.com/ani213/account-service
 
 go 1.24.6
 

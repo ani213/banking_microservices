@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/ani213/banking-auth/internal/auth"
+	"github.com/ani213/banking-auth/internal/config"
 	"github.com/ani213/banking-auth/pkg/jwtutil"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -19,6 +20,7 @@ import (
 )
 
 func main() {
+	config := config.LoadConfig()
 	dsn := "postgres://postgres:password@localhost:5432/bank?sslmode=disable"
 	if os.Getenv("DATABASE_URL") != "" {
 		dsn = os.Getenv("DATABASE_URL")
@@ -63,7 +65,7 @@ func main() {
 	// log.Printf("Current DB version: %d (dirty: %v)\n", version, dirty)
 
 	repo := auth.NewRepository(db)
-	svc := auth.NewService(repo)
+	svc := auth.NewService(repo, config)
 	h := auth.NewHandler(svc)
 	r := mux.NewRouter()
 	api := r.PathPrefix("/auth").Subrouter()
