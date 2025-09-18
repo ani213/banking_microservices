@@ -75,7 +75,7 @@ func main() {
 	}
 	//
 
-	log.Println("Auth service running on :8081")
+	log.Println("Account service running on :8081")
 	// http.ListenAndServe(":8080", r)
 
 	// Create a channel to listen for OS termination signals

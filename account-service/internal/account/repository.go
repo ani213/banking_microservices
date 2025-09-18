@@ -67,3 +67,59 @@ func (r *Repository) Withdraw(ctx context.Context, accountID int64, amount decim
 	}
 	return nil
 }
+
+func (r *Repository) AccountsByUserID(user_id string) ([]ResponseAccount, error) {
+	var accounts []ResponseAccount
+	query := `
+        SELECT 
+			users.id AS user_id,
+            users.full_name AS full_name,
+            users.email AS email,
+            accounts.account_number AS account_number,
+            accounts.balance AS balance,
+            account_types.name AS account_type,
+            account_status.name AS status
+        FROM accounts
+        JOIN users ON users.id = accounts.user_id
+        JOIN account_types ON account_types.id = accounts.account_type_id
+        JOIN account_status ON account_status.id = accounts.status_id
+        WHERE users.id = $1;`
+	err := r.db.Select(&accounts, query, user_id)
+	if err != nil {
+		return []ResponseAccount{}, err
+	}
+	return accounts, nil
+}
+
+func (r *Repository) GetAllUserWithAccounts() ([]UserAccount, error) {
+	var usersAccount []UserAccount
+	query := `SELECT
+	        u.id AS user_id,
+	        u.email as email,
+	        a.account_number as account_number,
+	        a.balance as balance,
+	        at.name AS account_type,
+	        account_status.name AS status
+	    FROM users u
+	    LEFT JOIN accounts a ON u.id = a.user_id
+	    LEFT JOIN account_types at ON a.account_type_id = at.id
+	    LEFT JOIN account_status ON a.status_id = account_status.id;`
+
+	// query := `SELECT
+	// 		users.id AS user_id,
+	//         users.full_name AS full_name,
+	//         users.email AS email,
+	//         accounts.account_number AS account_number,
+	//         accounts.balance AS balance,
+	//         account_types.name AS account_type,
+	//         account_status.name AS status
+	//     FROM accounts
+	//     JOIN users ON users.id = accounts.user_id
+	//     JOIN account_types ON account_types.id = accounts.account_type_id
+	//     JOIN account_status ON account_status.id = accounts.status_id`
+	err := r.db.Select(&usersAccount, query)
+	if err != nil {
+		return []UserAccount{}, err
+	}
+	return usersAccount, nil
+}

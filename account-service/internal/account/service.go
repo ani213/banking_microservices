@@ -68,3 +68,21 @@ func (s *Service) SendEmail(to string, subject string, body string, r *http.Requ
 	defer resp.Body.Close()
 	log.Println("Email sent to:-  " + to)
 }
+
+func (s *Service) GetAccountsByUserID(userId string) ([]ResponseAccount, error) {
+	accounts, err := s.repo.AccountsByUserID(userId)
+	if err != nil {
+		return []ResponseAccount{}, err
+	}
+	return accounts, nil
+}
+
+func (s *Service) GetAllUserWithAccounts() ([]UserAccount, error) {
+
+	user, err := s.repo.GetAllUserWithAccounts()
+	if err != nil {
+		return []UserAccount{}, err
+	}
+	return user, nil
+
+}

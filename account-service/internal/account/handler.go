@@ -96,3 +96,23 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 }
+
+func (h *Handler) GetAccountsByUserID(w http.ResponseWriter, r *http.Request) {
+	userID := mux.Vars(r)["user_id"]
+	accounts, err := h.service.GetAccountsByUserID(userID)
+	if err != nil {
+		util.CustomError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{"accounts": accounts})
+}
+
+func (h *Handler) GetAllUserWithAccounts(w http.ResponseWriter, r *http.Request) {
+	users, err := h.service.GetAllUserWithAccounts()
+	if err != nil {
+		util.CustomError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]interface{}{"users": users})
+}
