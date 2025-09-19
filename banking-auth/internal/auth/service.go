@@ -37,14 +37,14 @@ func (s *Service) Register(userReq *RegisterRequest) error {
 func (s *Service) Login(email, password string) (string, error) {
 
 	user, err := s.repo.FindByEmail(email)
-
+	roles, err := s.repo.FindRoleByUserId((user.ID))
 	if err != nil || user == nil {
 		return "", errors.New("invalid credentials")
 	}
 	if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)) != nil {
 		return "", errors.New("invalid credentials")
 	}
-	return jwtutil.GenerateToken(user.ID, user.Email, user.FullName)
+	return jwtutil.GenerateToken(user.ID, user.Email, user.FullName, roles)
 }
 
 func (s *Service) GetUsers() ([]ResponsGetUser, error) {
