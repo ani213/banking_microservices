@@ -2,6 +2,7 @@ package account
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -110,4 +111,17 @@ func (r *Repository) GetAllUserWithAccounts() ([]UserAccount, error) {
 		return []UserAccount{}, err
 	}
 	return usersAccount, nil
+}
+
+func (r *Repository) GetEmailByUserId(userId string) (string, error) {
+	var email []string
+	query := `select email from users where id=$1;`
+	err := r.db.Select(&email, query, userId)
+	if err != nil {
+		return "", err
+	}
+	if len(email) == 0 {
+		return "", errors.New("no email found")
+	}
+	return email[0], nil
 }

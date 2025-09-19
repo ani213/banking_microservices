@@ -94,3 +94,13 @@ func (s *Service) GetAllUserWithAccounts() ([]ResponseAllUserWithAccount, error)
 	return result, nil
 
 }
+
+func (s *Service) GetEmaiByUserId(userId string) (string, error) {
+	email, err := s.repo.GetEmailByUserId(userId)
+	if err != nil {
+		log.Println(err.Error(), "Error in service")
+		return "", err
+	}
+	log.Println(email, "Email in service")
+	return email, nil
+}

@@ -2,6 +2,7 @@ package account
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -43,8 +44,15 @@ func (h *Handler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		util.CustomError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	contextUser := GetContexValue(r)
-	go h.service.SendEmail(contextUser.Email, "Account Creation", "Your Account number:-"+acc.AccountNumber+" is successfully created", r)
+	email, err := h.service.GetEmaiByUserId(strconv.Itoa(int(acc.UserID)))
+	if err != nil {
+		log.Println(err.Error())
+	}
+	if email != "" {
+		go h.service.SendEmail(email, "Account Creation", "Your Account number:-"+acc.AccountNumber+" is successfully created", r)
+
+	}
+	// contextUser := GetContexValue(r)
 	json.NewEncoder(w).Encode(acc)
 }
 

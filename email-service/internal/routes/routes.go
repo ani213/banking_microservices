@@ -7,4 +7,5 @@ import (
 
 func Routes(r *mux.Router, h *email.Handler) {
 	r.HandleFunc("/send-email", h.SendEmail).Methods("POST")
+	r.HandleFunc("/test", h.Test).Methods("GET")
 }
