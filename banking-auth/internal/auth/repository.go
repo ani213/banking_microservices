@@ -15,9 +15,28 @@ func NewRepository(db *sqlx.DB) *Repository {
 }
 
 func (r *Repository) CreateUser(u *User) error {
-	_, err := r.db.Exec(`
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return err
+	}
+	// Step 1 create user
+	var newUser User
+
+	err = tx.QueryRowx(`
         INSERT INTO users ( email, password_hash, full_name) 
-        VALUES ($1, $2, $3)`, u.Email, u.PasswordHash, u.FullName)
+        VALUES ($1, $2, $3) RETURNING *`, u.Email, u.PasswordHash, u.FullName).StructScan(&newUser)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	// step 2 add role
+	var role int = 1
+	_, err = tx.Exec(`INSERT INTO user_role_mapping (user_id ,role_id) VALUES ($1, $2)`, newUser.ID, role)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
 	return err
 }
 

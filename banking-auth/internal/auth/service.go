@@ -81,7 +81,6 @@ func (s *Service) SendEmail(to string, subject string, body string, r *http.Requ
 	if err != nil {
 		log.Println(err.Error())
 	}
-	log.Println(token, ">>>>>>token")
 	emailReq.Header.Set("Content-Type", "application/json")
 	emailReq.Header.Set("Authorization", "Bearer "+token)
 	log.Println(emailReq.Header.Get("Authorization"))
