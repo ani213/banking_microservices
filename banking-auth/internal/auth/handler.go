@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/ani213/banking-auth/pkg/jwtutil"
@@ -63,10 +64,6 @@ func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ValidateToken(w http.ResponseWriter, r *http.Request) {
-	// var req struct {
-	// 	Token string `json:"token"`
-	// }
-	// json.NewDecoder(r.Body).Decode(&req)
 	user, err := h.svc.ValidateToken(r)
 	if err != nil {
 		util.Error(w, err.Error(), http.StatusUnauthorized)
@@ -86,4 +83,22 @@ func (h *Handler) GetContext(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func (h *Handler) AddUserRole(w http.ResponseWriter, r *http.Request) {
+	var requestBody UserRoleRequestBody
+	json.NewDecoder(r.Body).Decode(&requestBody)
+	err := validate.Struct(requestBody)
+	if err != nil {
+		util.ValidationError(w, err, http.StatusBadRequest)
+		return
+	}
+	fmt.Println(requestBody, "request body")
+	err = h.svc.AddRoles(requestBody.UserID, requestBody.Roles)
+	if err != nil {
+		util.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"msg": "Successfully role added"})
 }

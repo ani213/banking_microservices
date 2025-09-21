@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 type Repository struct {
@@ -50,9 +51,9 @@ func (r *Repository) FindByEmail(email string) (*User, error) {
 	}
 	return &u, err
 }
-func (r *Repository) FindRoleByUserId(userId int64) ([]int64, error) {
-	var roles []int64
-	err := r.db.Select(&roles, "SELECT role_id FROM user_role_mapping where user_id=$1", userId)
+func (r *Repository) FindRoleByUserId(userId int64) ([]string, error) {
+	var roles []string
+	err := r.db.Select(&roles, "select r.name  from roles as r join user_role_mapping as urm on r.id=urm.role_id where urm.user_id =$1", userId)
 	if err != nil {
 		return nil, err
 	}
@@ -68,4 +69,21 @@ func (r *Repository) FindUsers() ([]ResponsGetUser, error) {
 		return nil, err
 	}
 	return u, err
+}
+
+func (r *Repository) AddRoles(userId int64, roles []int64) error {
+	for _, roleId := range roles {
+		_, err := r.db.Exec(`INSERT INTO user_role_mapping (user_id,role_id) VALUES ($1,$2)`, userId, roleId)
+		if err != nil {
+			if pqErr, ok := err.(*pq.Error); ok {
+				if pqErr.Code == "23505" {
+					// duplicate key violation → ignore
+					continue
+				}
+			}
+			// any other error → return
+			return err
+		}
+	}
+	return nil
 }

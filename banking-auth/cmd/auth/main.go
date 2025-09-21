@@ -32,38 +32,6 @@ func main() {
 		log.Fatal("DB connection error:", err)
 	}
 
-	// Get absolute path to migrations/
-	// wd, err := os.Getwd()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// migrationsPath := "file://" + filepath.Join(wd, "../../migrations")
-	// migrationsPath := "file://./migrations"
-	// migrationsPath := filepath.Join(wd, "migrations")
-
-	// log.Println("Migrations path:", migrationsPath)
-	// m, err := migrate.New(migrationsPath, dsn)
-	// if err != nil {
-	// 	log.Fatalf("Could not init migrate: %v", err)
-	// }
-
-	// err = m.Up()
-	// if err != nil {
-	// 	if err == migrate.ErrNoChange {
-	// 		log.Println("No new migrations to apply (DB already up to date).")
-	// 	} else {
-	// 		log.Fatalf("Migration failed: %v", err)
-	// 	}
-	// } else {
-	// 	log.Println("Migrations applied successfully!")
-	// }
-
-	// version, dirty, err := m.Version()
-	// if err != nil && err != migrate.ErrNilVersion {
-	// 	log.Fatalf("Could not get migration version: %v", err)
-	// }
-	// log.Printf("Current DB version: %d (dirty: %v)\n", version, dirty)
-
 	repo := auth.NewRepository(db)
 	svc := auth.NewService(repo, config)
 	h := auth.NewHandler(svc)

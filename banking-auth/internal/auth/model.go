@@ -30,3 +30,8 @@ type EmailRequestBody struct {
 	Body    string `json:"body"`
 	Subject string `json:"subject"`
 }
+
+type UserRoleRequestBody struct {
+	UserID int64   `json:"userId" validate:"required"`
+	Roles  []int64 `json:"roles" validate:"required"`
+}

@@ -42,6 +42,7 @@ func (s *Service) Login(email, password string) (string, error) {
 	if err != nil || user == nil {
 		return "", err
 	}
+	// fmt.Println(roles, "roless")
 	if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)) != nil {
 		return "", errors.New("password invalid credentials")
 	}
@@ -95,4 +96,8 @@ func (s *Service) SendEmail(to string, subject string, body string, r *http.Requ
 	log.Println(resp.StatusCode, "response")
 	defer resp.Body.Close()
 	log.Println("Email sent to:-  " + to)
+}
+
+func (s *Service) AddRoles(userId int64, roles []int64) error {
+	return s.repo.AddRoles(userId, roles)
 }

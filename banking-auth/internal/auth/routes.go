@@ -14,5 +14,5 @@ func PrivateRoutes(r *mux.Router, h *Handler) {
 	r.HandleFunc("/users", h.GetUsers).Methods("GET")
 	r.HandleFunc("/context", h.GetContext).Methods("GET")
 	r.HandleFunc("/validate-token", h.ValidateToken).Methods("GET")
-
+	r.HandleFunc("/add-role", h.AddUserRole).Methods("PUT")
 }

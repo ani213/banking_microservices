@@ -20,13 +20,13 @@ type contextKey string
 const UserContextKey contextKey = "user"
 
 type ContextValue struct {
-	UserId   int64   `json:"userId"`
-	Email    string  `json:"email"`
-	Roles    []int64 `json:"roles"`
-	FullName string  `json:"fullname"`
+	UserId   int64    `json:"userId"`
+	Email    string   `json:"email"`
+	Roles    []string `json:"roles"`
+	FullName string   `json:"fullname"`
 }
 
-func GenerateToken(userID int64, email string, fullName string, roles []int64) (string, error) {
+func GenerateToken(userID int64, email string, fullName string, roles []string) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id":  userID,
 		"exp":      time.Now().Add(24 * time.Hour).Unix(),
@@ -34,7 +34,7 @@ func GenerateToken(userID int64, email string, fullName string, roles []int64) (
 		"fullName": fullName,
 		"roles":    roles,
 	}
-	fmt.Println(roles, "roles")
+	// fmt.Println(roles, "roles")
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret)
 }
@@ -119,10 +119,10 @@ func getUserFromClaim(claims jwt.MapClaims) (ContextValue, error) {
 		user.Email = string(email)
 	}
 	if rawRoles, ok := claims["roles"].([]interface{}); ok {
-		var roles []int64
+		var roles []string
 		for _, r := range rawRoles {
-			if roleFloat, ok := r.(float64); ok {
-				roles = append(roles, int64(roleFloat))
+			if roleFloat, ok := r.(string); ok {
+				roles = append(roles, string(roleFloat))
 			}
 		}
 		user.Roles = roles
@@ -151,4 +151,27 @@ func GetContextValue(r *http.Request) (ContextValue, error) {
 		FullName: contextValue.FullName,
 	}
 	return user, nil
+}
+
+func RequireRoles(allowedRoles ...string) func(http.HandlerFunc) http.HandlerFunc {
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			user, err := GetContextValue(r)
+			if err != nil {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			for _, role := range user.Roles {
+				for _, allowed := range allowedRoles {
+					if role == allowed {
+						next(w, r) // ✅ direct call since it's a HandlerFunc
+						return
+					}
+				}
+			}
+
+			http.Error(w, "Forbidden", http.StatusForbidden)
+		}
+	}
 }
