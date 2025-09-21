@@ -2,7 +2,6 @@ package auth
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/ani213/banking-auth/pkg/jwtutil"
@@ -78,8 +77,13 @@ func (h *Handler) ValidateToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetContext(w http.ResponseWriter, r *http.Request) {
-	contextValue := r.Context().Value(jwtutil.UserContextKey)
-	log.Println(contextValue, "Context value")
-
+	user, err := jwtutil.GetContextValue(r)
+	if err != nil {
+		util.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
