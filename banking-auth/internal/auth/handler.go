@@ -2,8 +2,10 @@ package auth
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
+	"github.com/ani213/banking-auth/pkg/jwtutil"
 	"github.com/ani213/banking-auth/util"
 	"github.com/go-playground/validator"
 )
@@ -62,15 +64,22 @@ func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ValidateToken(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Token string `json:"token"`
-	}
-	json.NewDecoder(r.Body).Decode(&req)
-	userId, err := h.svc.ValidateToken(req.Token)
+	// var req struct {
+	// 	Token string `json:"token"`
+	// }
+	// json.NewDecoder(r.Body).Decode(&req)
+	user, err := h.svc.ValidateToken(r)
 	if err != nil {
 		util.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{"userid": userId, "valid": true})
+	json.NewEncoder(w).Encode(map[string]interface{}{"user": user, "valid": true})
+}
+
+func (h *Handler) GetContext(w http.ResponseWriter, r *http.Request) {
+	contextValue := r.Context().Value(jwtutil.UserContextKey)
+	log.Println(contextValue, "Context value")
+
+	w.WriteHeader(http.StatusOK)
 }

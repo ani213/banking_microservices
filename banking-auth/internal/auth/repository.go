@@ -50,9 +50,9 @@ func (r *Repository) FindByEmail(email string) (*User, error) {
 	}
 	return &u, err
 }
-func (r *Repository) FindRoleByUserId(userId string) ([]int64, error) {
+func (r *Repository) FindRoleByUserId(userId int64) ([]int64, error) {
 	var roles []int64
-	err := r.db.Get(&roles, "SELECT role_id FROM user_role_mapping where user_id=$1", userId)
+	err := r.db.Select(&roles, "SELECT role_id FROM user_role_mapping where user_id=$1", userId)
 	if err != nil {
 		return nil, err
 	}

@@ -10,7 +10,6 @@ import (
 	"github.com/ani213/banking-auth/internal/config"
 	"github.com/ani213/banking-auth/pkg/jwtutil"
 	"github.com/ani213/banking-auth/util"
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -26,7 +25,6 @@ func NewService(repo *Repository, config *config.Config) *Service {
 func (s *Service) Register(userReq *RegisterRequest) error {
 	hash, _ := bcrypt.GenerateFromPassword([]byte(userReq.Password), bcrypt.DefaultCost)
 	user := &User{
-		ID:           uuid.New().String(),
 		Email:        userReq.Email,
 		PasswordHash: string(hash),
 		FullName:     userReq.FullName,
@@ -37,12 +35,15 @@ func (s *Service) Register(userReq *RegisterRequest) error {
 func (s *Service) Login(email, password string) (string, error) {
 
 	user, err := s.repo.FindByEmail(email)
+	if err != nil {
+		return "", errors.New("emailfind invalid credentials")
+	}
 	roles, err := s.repo.FindRoleByUserId((user.ID))
 	if err != nil || user == nil {
-		return "", errors.New("invalid credentials")
+		return "", err
 	}
 	if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)) != nil {
-		return "", errors.New("invalid credentials")
+		return "", errors.New("password invalid credentials")
 	}
 	return jwtutil.GenerateToken(user.ID, user.Email, user.FullName, roles)
 }
@@ -57,12 +58,13 @@ func (s *Service) GetUsers() ([]ResponsGetUser, error) {
 	return users, nil
 }
 
-func (s *Service) ValidateToken(token string) (int64, error) {
-	userID, err := jwtutil.ValidateToken(token)
+func (s *Service) ValidateToken(r *http.Request) (jwtutil.ContextValue, error) {
+	user, err := jwtutil.GetContextValue(r)
 	if err != nil {
-		return 0, err
+		return jwtutil.ContextValue{}, err
 	}
-	return userID, nil
+	return user, err
+
 }
 
 func (s *Service) SendEmail(to string, subject string, body string, r *http.Request) {

@@ -3,6 +3,7 @@ package jwtutil
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -16,9 +17,16 @@ var jwtSecret = []byte("super-secret-key") // in prod, use env vars
 
 type contextKey string
 
-const UserIDKey contextKey = "userID"
+const UserContextKey contextKey = "user"
 
-func GenerateToken(userID string, email string, fullName string, roles []int64) (string, error) {
+type ContextValue struct {
+	UserId   int64
+	Email    string
+	Roles    []int64
+	FullName string
+}
+
+func GenerateToken(userID int64, email string, fullName string, roles []int64) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id":  userID,
 		"exp":      time.Now().Add(24 * time.Hour).Unix(),
@@ -26,11 +34,12 @@ func GenerateToken(userID string, email string, fullName string, roles []int64) 
 		"fullName": fullName,
 		"roles":    roles,
 	}
+	fmt.Println(roles, "roles")
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret)
 }
 
-func ValidateToken(tokenStr string) (int64, error) {
+func ValidateToken(tokenStr string) (ContextValue, error) {
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, jwt.ErrInvalidKey
@@ -39,15 +48,15 @@ func ValidateToken(tokenStr string) (int64, error) {
 	})
 
 	if err != nil || !token.Valid {
-		return 0, err
+		return ContextValue{}, err
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
-	userID, err := getUserIDFromClaims(claims)
+	user, err := getUserFromClaim(claims)
 	if err != nil {
-		return 0, err
+		return ContextValue{}, err
 	}
-	return userID, nil
+	return user, nil
 }
 
 func JWTMiddleware() func(http.Handler) http.Handler {
@@ -79,36 +88,68 @@ func JWTMiddleware() func(http.Handler) http.Handler {
 			}
 
 			claims := token.Claims.(jwt.MapClaims)
-			userID, err := getUserIDFromClaims(claims)
+			user, err := getUserFromClaim(claims)
 			if err != nil {
 				AuthError(w)
 				return
 			}
-
-			// attach userID to request context
-			ctx := context.WithValue(r.Context(), UserIDKey, userID)
+			fmt.Println(user, "user values")
+			// attach user to request context
+			ctx := context.WithValue(r.Context(), UserContextKey, user)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
 
 // extract userID safely from claims
-func getUserIDFromClaims(claims jwt.MapClaims) (int64, error) {
+func getUserFromClaim(claims jwt.MapClaims) (ContextValue, error) {
+	var user ContextValue
 	if val, ok := claims["user_id"].(float64); ok {
-		return int64(val), nil
+		user.UserId = int64(val)
+		// return int64(val), nil
 	}
 	if val, ok := claims["user_id"].(string); ok {
 		// try to parse string to int64
 		parsed, err := strconv.ParseInt(val, 10, 64)
 		if err != nil {
-			return 0, fmt.Errorf("invalid user_id format")
+			return user, fmt.Errorf("invalid user_id format")
 		}
-		return parsed, nil
+		user.UserId = parsed
 	}
-	return 0, fmt.Errorf("user_id not found or invalid type")
+	if email, ok := claims["email"].(string); ok {
+		user.Email = string(email)
+	}
+	if rawRoles, ok := claims["roles"].([]interface{}); ok {
+		var roles []int64
+		for _, r := range rawRoles {
+			if roleFloat, ok := r.(float64); ok {
+				roles = append(roles, int64(roleFloat))
+			}
+		}
+		user.Roles = roles
+	}
+	if fullName, ok := claims["fullName"].(string); ok {
+		user.FullName = fullName
+	}
+
+	return user, nil
 }
 
 func AuthError(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusUnauthorized)
 	json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized access"})
+}
+
+func GetContextValue(r *http.Request) (ContextValue, error) {
+	contextValue, ok := r.Context().Value(UserContextKey).(ContextValue)
+	if !ok {
+		return ContextValue{}, errors.New("get context value error")
+	}
+	user := ContextValue{
+		UserId:   contextValue.UserId,
+		Email:    contextValue.Email,
+		Roles:    contextValue.Roles,
+		FullName: contextValue.FullName,
+	}
+	return user, nil
 }
