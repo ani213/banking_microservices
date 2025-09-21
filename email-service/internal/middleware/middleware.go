@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -11,11 +11,22 @@ import (
 	"github.com/ani213/email-service/utils"
 )
 
-type validateResponse struct {
-	Valid  bool   `json:"valid"`
-	UserID int64  `json:"userId,omitempty"`
-	Error  string `json:"error,omitempty"`
+type User struct {
+	UserID   int64
+	Email    string
+	Roles    []int64
+	FullName string
 }
+
+type validateResponse struct {
+	Valid bool   `json:"vaild"`
+	User  User   `json:"user"`
+	Error string `json:"error"`
+}
+
+type ContextKey string
+
+const UserContextKey ContextKey = "user"
 
 func Authenticate(config *config.Config) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -34,10 +45,17 @@ func Authenticate(config *config.Config) func(http.Handler) http.Handler {
 			}
 			token := parts[1]
 
-			reqBody, _ := json.Marshal(map[string]string{"token": token})
-			resp, err := http.Post(config.AuthService+"/validate-token", "application/json", bytes.NewBuffer(reqBody))
+			autRequest, err := http.NewRequest("GET", config.AuthService+"/auth/validate-token", nil)
 			if err != nil {
 				http.Error(w, "Auth server unavailabel", http.StatusInternalServerError)
+				return
+			}
+			autRequest.Header.Set("Content-Type", "application/json")
+			autRequest.Header.Set("Authorization", "Bearer "+token)
+			client := &http.Client{}
+			resp, err := client.Do(autRequest)
+			if err != nil {
+				log.Println(err.Error(), "Error main things")
 				return
 			}
 			defer resp.Body.Close()
@@ -51,7 +69,8 @@ func Authenticate(config *config.Config) func(http.Handler) http.Handler {
 				utils.UnAutherizedError(w)
 				return
 			}
-			next.ServeHTTP(w, r)
+			ctx := context.WithValue(r.Context(), UserContextKey, result)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }

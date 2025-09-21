@@ -20,10 +20,10 @@ type contextKey string
 const UserContextKey contextKey = "user"
 
 type ContextValue struct {
-	UserId   int64
-	Email    string
-	Roles    []int64
-	FullName string
+	UserId   int64   `json:"userId"`
+	Email    string  `json:"email"`
+	Roles    []int64 `json:"roles"`
+	FullName string  `json:"fullname"`
 }
 
 func GenerateToken(userID int64, email string, fullName string, roles []int64) (string, error) {
@@ -93,7 +93,6 @@ func JWTMiddleware() func(http.Handler) http.Handler {
 				AuthError(w)
 				return
 			}
-			fmt.Println(user, "user values")
 			// attach user to request context
 			ctx := context.WithValue(r.Context(), UserContextKey, user)
 			next.ServeHTTP(w, r.WithContext(ctx))
