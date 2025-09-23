@@ -14,7 +14,7 @@ import (
 type User struct {
 	UserID   int64
 	Email    string
-	Roles    []int64
+	Roles    []string
 	FullName string
 }
 
@@ -65,7 +65,8 @@ func Authenticate(config *config.Config) func(http.Handler) http.Handler {
 				return
 			}
 			var result validateResponse
-			if err := json.NewDecoder(resp.Body).Decode(&result); err != nil || !result.Valid {
+
+			if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 				utils.UnAutherizedError(w)
 				return
 			}

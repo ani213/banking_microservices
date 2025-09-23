@@ -42,7 +42,7 @@ func main() {
 	auth.PrivateRoutes(api, h)
 	server := &http.Server{
 		Addr:    ":8080",
-		Handler: r,
+		Handler: jwtutil.LoggingMiddleware(r),
 	}
 	//
 
