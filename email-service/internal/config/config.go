@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Config struct {
@@ -13,6 +14,7 @@ type Config struct {
 	SMTPPort      string
 	EmailPassword string
 	EmailId       string
+	QueueChannel  *amqp.Channel
 }
 
 func LoadConfig() *Config {
@@ -20,11 +22,20 @@ func LoadConfig() *Config {
 	if err != nil {
 		log.Println("No .env file found, using system env")
 	}
+	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	if err != nil {
+		log.Println(err.Error() + "Error in rabbitmq connetion")
+	}
+	ch, err := conn.Channel()
+	if err != nil {
+		log.Println(err.Error() + "Error in rabbitmq channel")
+	}
 	return &Config{
 		AuthService:   os.Getenv("AUTH_SERVICE"),
 		SMTPHost:      os.Getenv("SMTPHOST"),
 		SMTPPort:      os.Getenv("SMTPPORT"),
 		EmailPassword: os.Getenv("PASSWORD"),
 		EmailId:       os.Getenv("EMAIL"),
+		QueueChannel:  ch,
 	}
 }

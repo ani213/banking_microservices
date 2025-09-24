@@ -19,5 +19,6 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
+	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 )

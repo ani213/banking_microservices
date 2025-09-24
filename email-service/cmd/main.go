@@ -51,6 +51,8 @@ func main() {
 		}
 	}()
 
+	go svc.StartRabbitConsumer()
+
 	// Block the main goroutine until a signal is received
 	<-done
 

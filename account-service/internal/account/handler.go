@@ -48,8 +48,17 @@ func (h *Handler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err.Error())
 	}
+	// if email != "" {
+	// 	go h.service.SendEmail(email, "Account Creation", "Your Account number:-"+acc.AccountNumber+" is successfully created", r)
+
+	// }
+	emailRequest := EmailRequestBody{
+		To:      email,
+		Subject: "Account Creation",
+		Body:    "Your Account Number:-" + acc.AccountNumber + " is successfully created",
+	}
 	if email != "" {
-		go h.service.SendEmail(email, "Account Creation", "Your Account number:-"+acc.AccountNumber+" is successfully created", r)
+		go h.service.SendEmailInQueue(emailRequest)
 
 	}
 	// contextUser := GetContexValue(r)

@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/ani213/account-service/internal/config"
 	"github.com/ani213/account-service/internal/util"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/shopspring/decimal"
 )
 
@@ -103,4 +105,38 @@ func (s *Service) GetEmaiByUserId(userId string) (string, error) {
 	}
 	log.Println(email, "Email in service")
 	return email, nil
+}
+
+func (s *Service) SendEmailInQueue(email EmailRequestBody) {
+	var ch = s.config.QueueChannel
+	q, err := ch.QueueDeclare(
+		"email-queue", //name
+		false,         // durable
+		false,         // delete when unused
+		false,         // exclusive
+		false,         // no-wait
+		nil,           // arguments
+
+	)
+	if err != nil {
+		log.Println("Error during declear queue", err.Error())
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	body, err := json.Marshal(email)
+	if err != nil {
+		log.Println("Error durin json Marshal")
+	}
+	err = ch.PublishWithContext(ctx,
+		"",     // exchange
+		q.Name, // routing key
+		false,  // mandatory
+		false,  // immediate
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        body,
+		})
+	if err != nil {
+		log.Println("Failed to publish a message", err.Error())
+	}
 }
