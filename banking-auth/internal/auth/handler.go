@@ -8,6 +8,7 @@ import (
 	"github.com/ani213/banking-auth/pkg/jwtutil"
 	"github.com/ani213/banking-auth/util"
 	"github.com/go-playground/validator"
+	"github.com/lib/pq"
 )
 
 type Handler struct {
@@ -29,6 +30,12 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := h.svc.Register(&req); err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			if pqErr.Code == "23505" {
+				util.Error(w, "email already exists", http.StatusBadRequest)
+				return
+			}
+		}
 		util.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
