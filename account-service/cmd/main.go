@@ -67,8 +67,10 @@ func main() {
 	h := account.NewHandler(svc)
 
 	r := mux.NewRouter()
-	r.Use(middleware.JWTMiddleware(config))
-	routes.Routes(r, h)
+	api := r.PathPrefix("/accounts").Subrouter()
+	api.Use(middleware.JWTMiddleware(config))
+	api.Use(middleware.JSONMiddleware)
+	routes.Routes(api, h)
 	server := &http.Server{
 		Addr:    ":8081",
 		Handler: r,

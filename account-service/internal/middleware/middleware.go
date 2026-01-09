@@ -136,3 +136,10 @@ func AuthError(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusUnauthorized)
 	json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized access"})
 }
+
+func JSONMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "applicatio/json")
+		next.ServeHTTP(w, r)
+	})
+}
