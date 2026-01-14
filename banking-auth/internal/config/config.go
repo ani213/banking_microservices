@@ -14,7 +14,7 @@ type Config struct {
 func LoadConfig() *Config {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("Env file not loaded")
+		log.Println("Using system env (Docker)")
 	}
 	return &Config{
 		EmailServer: os.Getenv("EMAIL_SERVER"),

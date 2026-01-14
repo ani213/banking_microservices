@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -21,9 +22,13 @@ import (
 
 func main() {
 	config := config.LoadConfig()
-	dsn := "postgres://postgres:password@localhost:5432/bank?sslmode=disable"
+	// dsn := "postgres://postgres:password@localhost:5432/bank?sslmode=disable"
+	// var dsn string
+	dsn := "postgres://postgres:password@host.docker.internal:5432/bank?sslmode=disable"
+
 	if os.Getenv("DATABASE_URL") != "" {
 		dsn = os.Getenv("DATABASE_URL")
+		fmt.Println(dsn)
 	}
 
 	db, err := sqlx.Connect("postgres", dsn)

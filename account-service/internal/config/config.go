@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -20,9 +21,19 @@ func LoadConfig() *Config {
 	if err != nil {
 		log.Println("No .env file found, using system env")
 	}
-	conn, err := amqp.Dial("amqp://guest:guest@host.docker.internal:5672/")
-	if err != nil {
-		log.Println("Rabbitmq is not conneted", err.Error())
+	amp_url := os.Getenv("RABBIT_MQ_URL")
+	var conn *amqp.Connection
+	// var err error
+
+	for i := 1; i <= 10; i++ {
+		conn, err = amqp.Dial(amp_url)
+		if err == nil {
+			log.Println("RabbitMQ connected")
+
+		}
+
+		log.Printf("RabbitMQ not ready (attempt %d): %v", i, err)
+		time.Sleep(3 * time.Second)
 	}
 	ch, err := conn.Channel()
 	if err != nil {
