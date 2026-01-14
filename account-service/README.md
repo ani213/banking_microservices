@@ -15,9 +15,8 @@ create_role_table-> is migration file name
 migrate -path ./migrations -database "postgres://postgres:password@localhost:5432/bank?sslmode=disable" force 3/2
 
 # for docker account service step-1 create build
-docker build -t auth-service .
+docker build -t account-service .
 # for run account service step-2 run
-docker run -d --name auth-service -p 8080:8080 \
-  -e DATABASE_URL="postgres://postgres:password@host.docker.internal:5432/bank?sslmode=disable" \
-  -e EMAIL_SERVER=http://host.docker.internal:8083 \
-  auth-service
+docker run -d --name account-service -p 8081:8081   -e DATABASE_URL="postgres://postgre
+s:password@host.docker.internal:5432/bank?sslmode=disable" -e SECRET_KEY=super-secret-
+key -e EMAIL_SERVER=http://localhost:8083 account-service

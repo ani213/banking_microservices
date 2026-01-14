@@ -20,9 +20,9 @@ func LoadConfig() *Config {
 	if err != nil {
 		log.Println("No .env file found, using system env")
 	}
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial("amqp://guest:guest@host.docker.internal:5672/")
 	if err != nil {
-		log.Println("Rabbitmq is not conneted")
+		log.Println("Rabbitmq is not conneted", err.Error())
 	}
 	ch, err := conn.Channel()
 	if err != nil {
