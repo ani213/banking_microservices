@@ -1,0 +1,74 @@
+version: '3.9'
+
+
+services: 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    environment:
+     RABBITMQ_LOGS: none
+     RABBITMQ_SASL_LOGS: none
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - bank-net
+   
+     
+  auth-service:
+    build: ./banking-auth
+    container_name: auth-service
+    # env_file:
+    #   - ./banking-auth/.env
+    environment:
+      EMAIL_SERVER: ${EMAIL_SERVER} 
+    ports:
+      - "8080:8080"
+    networks:
+      - bank-net
+    # restart: unless-stopped
+
+  account-service:
+    build: ./account-service
+    container_name: account-service
+    # env_file:
+    #   - ./account-service/.env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      EMAIL_SERVER: ${EMAIL_SERVER}
+      RABBIT_MQ_URL: ${RABBIT_MQ_URL}
+    ports:
+      - "8081:8081"
+    networks:
+      - bank-net
+    depends_on:
+      - rabbitmq
+  
+  email-service:
+    build: ./email-service
+    container_name: email-service
+    environment:
+      AUTH_SERVICE: ${AUTH_SERVICE}
+      RABBIT_MQ_URL: ${RABBIT_MQ_URL}
+      SMTPHOST: ${SMTPHOST}
+      SMTPPORT: ${SMTPPORT}
+      PASSWORD: ${PASSWORD}
+      EMAIL: ${EMAIL}
+    ports:
+      - "8083:8083"
+    networks:
+      - bank-net
+    depends_on:
+      - rabbitmq  
+    # restart: unless-stopped
+
+
+
+
+networks:
+  bank-net:
+    driver: bridge
+     
+volumes:
+  postgres_data:
