@@ -29,11 +29,11 @@ func LoadConfig() *Config {
 		conn, err = amqp.Dial(amp_url)
 		if err == nil {
 			log.Println("RabbitMQ connected")
-
+			break
 		}
 
 		log.Printf("RabbitMQ not ready (attempt %d): %v", i, err)
-		time.Sleep(3 * time.Second)
+		time.Sleep(4 * time.Second)
 	}
 	ch, err := conn.Channel()
 	if err != nil {
