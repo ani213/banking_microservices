@@ -30,6 +30,9 @@ func (s *Service) SendEmail(requestBody *EmailRequest) (string, error) {
 			requestBody.Body,
 	)
 	auth := smtp.PlainAuth("", s.config.EmailId, s.config.EmailPassword, s.config.SMTPHost)
+	if s.config.SMTPHost == "localhost" {
+		auth = nil
+	}
 	err := smtp.SendMail(s.config.SMTPHost+":"+s.config.SMTPPort, auth, s.config.EmailId, to, msg)
 	if err != nil {
 		return "", err

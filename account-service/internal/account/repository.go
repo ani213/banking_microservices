@@ -41,11 +41,11 @@ func (r *Repository) GetByID(ctx context.Context, id int64) (*Account, error) {
 }
 
 // Deposit updates balance
-func (r *Repository) Deposit(ctx context.Context, accountNumber string, amount float64) (string, float64, error) {
+func (r *Repository) Deposit(ctx context.Context, accountNumber string, amount float64) (BalancEmail, error) {
 	// 1. Start a transation
 	tx, err := r.db.Begin()
 	if err != nil {
-		return "", 0, err
+		return BalancEmail{}, err
 	}
 	// Ensure rollback if we return early due to an error
 	defer tx.Rollback()
@@ -53,34 +53,36 @@ func (r *Repository) Deposit(ctx context.Context, accountNumber string, amount f
 	// This locks the account row until tx.Commit() or tx.Rollback()
 	var statusName string
 	var balance float64
+	var email string
 	query := `
-        SELECT  t.name,a.balance 
+        SELECT  t.name,a.balance,u.email
         FROM accounts a 
         JOIN account_status t ON a.status_id = t.id 
+		JOIN users u on a.user_id =u.id 
         WHERE a.account_number = $1 
         FOR UPDATE OF a;` // Lock only the 'accounts' table row
 
-	err = tx.QueryRow(query, accountNumber).Scan(&statusName, &balance)
+	err = tx.QueryRow(query, accountNumber).Scan(&statusName, &balance, &email)
 	if err != nil {
-		return "", 0, err
+		return BalancEmail{}, err
 	}
 
 	if statusName == "active" {
 		updateQuery := `UPDATE accounts SET balance = balance + $1 WHERE account_number = $2`
 		_, err := tx.Exec(updateQuery, amount, accountNumber)
 		if err != nil {
-			return "", 0, err
+			return BalancEmail{}, err
 		}
 
 	} else {
-		return "", 0, fmt.Errorf("account is not active")
+		return BalancEmail{}, fmt.Errorf("account is not active")
 	}
 	// 4. Commit the transaction (this releases the lock)
 	err = tx.Commit()
 	if err != nil {
-		return "", 0, err
+		return BalancEmail{}, err
 	}
-	return accountNumber, balance, nil
+	return BalancEmail{Balance: balance + amount, Email: email, AccountNo: accountNumber}, nil
 	// query:=`select a.account_number,t.name from accounts a join account_status t on a.status_id =t.id where a.account_number=$1;`
 
 }

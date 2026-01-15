@@ -31,7 +31,7 @@ func (s *Service) GetAccount(ctx context.Context, id int64) (*Account, error) {
 	return s.repo.GetByID(ctx, id)
 }
 
-func (s *Service) Deposit(ctx context.Context, accountNo string, amount float64) (string, float64, error) {
+func (s *Service) Deposit(ctx context.Context, accountNo string, amount float64) (BalancEmail, error) {
 	return s.repo.Deposit(ctx, accountNo, amount)
 }
 

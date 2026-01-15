@@ -88,12 +88,21 @@ func (h *Handler) Deposit(w http.ResponseWriter, r *http.Request) {
 		// utils.CustomError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	accountNumber, balance, err := h.service.Deposit(r.Context(), payload.AccountNo, payload.Amount)
+	res, err := h.service.Deposit(r.Context(), payload.AccountNo, payload.Amount)
 	if err != nil {
 		util.CustomError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	json.NewEncoder(w).Encode(map[string]string{"message": "success", "AccountNo": accountNumber, "Balance": fmt.Sprintf("%.2f", balance)})
+	emailRequest := EmailRequestBody{
+		To:      res.Email,
+		Subject: "Account Creation",
+		Body:    "Your Account Number:-" + res.AccountNo + " Balance is " + fmt.Sprintf("%.2f", res.Balance),
+	}
+	if res.Email != "" {
+		go h.service.SendEmailInQueue(emailRequest)
+
+	}
+	json.NewEncoder(w).Encode(map[string]string{"message": "success", "AccountNo": res.AccountNo, "Balance": fmt.Sprintf("%.2f", res.Balance)})
 }
 
 func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {

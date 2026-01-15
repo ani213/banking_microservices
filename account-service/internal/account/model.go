@@ -76,3 +76,9 @@ type DepositRequest struct {
 	Amount    float64 `json:"amount" validate:"required"`
 	AccountNo string  `json:"accountNo" validate:"required"`
 }
+
+type BalancEmail struct {
+	Balance   float64
+	Email     string
+	AccountNo string
+}
