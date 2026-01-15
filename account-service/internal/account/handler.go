@@ -2,6 +2,7 @@ package account
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -77,22 +78,22 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Deposit(w http.ResponseWriter, r *http.Request) {
-	idStr := mux.Vars(r)["id"]
-	id, _ := strconv.ParseInt(idStr, 10, 64)
-
-	var payload struct {
-		Amount string `json:"amount"`
-	}
+	var payload DepositRequest
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
 	}
-	amount, _ := decimal.NewFromString(payload.Amount)
-	if err := h.service.Deposit(r.Context(), id, amount); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err := validate.Struct(payload); err != nil {
+		util.ValidationError(w, err, http.StatusBadRequest)
+		// utils.CustomError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	accountNumber, balance, err := h.service.Deposit(r.Context(), payload.AccountNo, payload.Amount)
+	if err != nil {
+		util.CustomError(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]string{"message": "success", "AccountNo": accountNumber, "Balance": fmt.Sprintf("%.2f", balance)})
 }
 
 func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {

@@ -41,14 +41,48 @@ func (r *Repository) GetByID(ctx context.Context, id int64) (*Account, error) {
 }
 
 // Deposit updates balance
-func (r *Repository) Deposit(ctx context.Context, accountID int64, amount decimal.Decimal) error {
+func (r *Repository) Deposit(ctx context.Context, accountNumber string, amount float64) (string, float64, error) {
+	// 1. Start a transation
+	tx, err := r.db.Begin()
+	if err != nil {
+		return "", 0, err
+	}
+	// Ensure rollback if we return early due to an error
+	defer tx.Rollback()
+	// 2. Read with FOR UPDATE
+	// This locks the account row until tx.Commit() or tx.Rollback()
+	var statusName string
+	var balance float64
 	query := `
-		UPDATE accounts
-		SET balance = balance + $1, updated_at = now()
-		WHERE id = $2
-	`
-	_, err := r.db.ExecContext(ctx, query, amount, accountID)
-	return err
+        SELECT  t.name,a.balance 
+        FROM accounts a 
+        JOIN account_status t ON a.status_id = t.id 
+        WHERE a.account_number = $1 
+        FOR UPDATE OF a;` // Lock only the 'accounts' table row
+
+	err = tx.QueryRow(query, accountNumber).Scan(&statusName, &balance)
+	if err != nil {
+		return "", 0, err
+	}
+
+	if statusName == "active" {
+		updateQuery := `UPDATE accounts SET balance = balance + $1 WHERE account_number = $2`
+		_, err := tx.Exec(updateQuery, amount, accountNumber)
+		if err != nil {
+			return "", 0, err
+		}
+
+	} else {
+		return "", 0, fmt.Errorf("account is not active")
+	}
+	// 4. Commit the transaction (this releases the lock)
+	err = tx.Commit()
+	if err != nil {
+		return "", 0, err
+	}
+	return accountNumber, balance, nil
+	// query:=`select a.account_number,t.name from accounts a join account_status t on a.status_id =t.id where a.account_number=$1;`
+
 }
 
 // Withdraw ensures no negative balance
@@ -124,4 +158,44 @@ func (r *Repository) GetEmailByUserId(userId string) (string, error) {
 		return "", errors.New("no email found")
 	}
 	return email[0], nil
+}
+
+func (r *Repository) UpdateBalance(accountNumber string, amount float64) error {
+	// 1. Start a transation
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	// Ensure rollback if we return early due to an error
+	defer tx.Rollback()
+	// 2. Read with FOR UPDATE
+	// This locks the account row until tx.Commit() or tx.Rollback()
+	var statusName string
+	var balance float64
+	query := `
+        SELECT  t.name,a.balance 
+        FROM accounts a 
+        JOIN account_status t ON a.status_id = t.id 
+        WHERE a.account_number = $1 
+        FOR UPDATE OF a;` // Lock only the 'accounts' table row
+
+	err = tx.QueryRow(query, accountNumber).Scan(&statusName, &balance)
+	if err != nil {
+		return err
+	}
+
+	if statusName == "active" {
+		updateQuery := `UPDATE accounts SET balance = balance + $1 WHERE account_number = $2`
+		_, err := tx.Exec(updateQuery, amount, accountNumber)
+		if err != nil {
+			return err
+		}
+
+	} else {
+		return fmt.Errorf("account is not active")
+	}
+	// 4. Commit the transaction (this releases the lock)
+	return tx.Commit()
+	// query:=`select a.account_number,t.name from accounts a join account_status t on a.status_id =t.id where a.account_number=$1;`
+
 }

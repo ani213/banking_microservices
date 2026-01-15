@@ -24,8 +24,8 @@ func LoadConfig() *Config {
 	amp_url := os.Getenv("RABBIT_MQ_URL")
 	var conn *amqp.Connection
 	// var err error
-
-	for i := 1; i <= 10; i++ {
+	log.Println(amp_url, "RABBIT_MQ_URL")
+	for i := 1; i <= 2; i++ {
 		conn, err = amqp.Dial(amp_url)
 		if err == nil {
 			log.Println("RabbitMQ connected")

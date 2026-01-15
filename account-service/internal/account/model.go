@@ -71,3 +71,8 @@ type UserAccount struct {
 	AccountType *string `db:"account_type" json:"account_type"`
 	Status      *string `db:"status" json:"status"`
 }
+
+type DepositRequest struct {
+	Amount    float64 `json:"amount" validate:"required"`
+	AccountNo string  `json:"accountNo" validate:"required"`
+}
